@@ -27,16 +27,14 @@ export class ManageComponent implements OnInit {
       this.sort$.next(this.order)
     })
 
-    // this.clipService.getUserClips(this.sort$).subscribe(docs =>{
-    //   this.clips=[]
-
-    //   docs.forEach(doc =>{
-    //     this.clips.push({
-    //       ...doc.data(),
-    //       docId:doc.id
-    //     })
-    //   })
-    // })
+    this.clipService.getUserClips(this.sort$).subscribe(data =>{
+      this.clips=[]
+      data.map(clip =>{
+        clip.clipData='data:video/mp4;base64,'+clip.clipData.data
+        clip.screenshotData='data:image/png;base64,'+clip.screenshotData.data
+        this.clips.push(clip)
+      })
+    })
   }
 
   sort(event:Event){

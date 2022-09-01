@@ -16,13 +16,35 @@ export class AuthService {
   isAuthenticatedWithDelay$:Observable<boolean>
   redirect=false
   serverUrl='http://localhost:8080'
+  user:IUser|null=null
+  user$:Observable<any>
 
   constructor(
     private http:HttpClient,
     private router:Router,
     private route:ActivatedRoute) {
-    
+    this.user$=of(
+        {
+          userId:'630f50deb5f33e479186e5ee',
+          name:'jack',
+          email:'jack@mail.com',
+          age:20,
+          mobileNumber:'4545124522',
+          token:null
+        }
+      )
     this.isAuthenticated$=of(true)
+    this.user$.subscribe(
+      (data)=>{
+        this.user={
+          id:data.userId,
+          name:data.name,
+          email:data.email,
+          age:data.age,
+          mobileNumber:data.mobileNumber,
+        }
+      }
+    )
     this.isAuthenticatedWithDelay$=this.isAuthenticated$.pipe(
       delay(1000)
     )

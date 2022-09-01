@@ -51,12 +51,12 @@ export class EditComponent implements OnInit, OnChanges {
     }
     this.inSubmission=true
     this.alertColor='blue'
-    this.alertMessage='Uploading clip...Please wait!!'
+    this.alertMessage='Updating clip...Please wait!!'
     this.showAlert=true
 
     try {
       
-      // await this.clipService.updateClip(this.clipId.value, this.title.value)
+      this.clipService.updateClip(this.clipId.value, this.title.value)
     } catch (error) {
       console.error(error)
       this.inSubmission=false

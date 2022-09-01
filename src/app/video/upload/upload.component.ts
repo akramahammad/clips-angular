@@ -1,12 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { last, switchMap } from 'rxjs/operators';
-import firebase from 'firebase/compat/app';
 import { ClipService } from 'src/app/services/clip.service';
 import { Router } from '@angular/router';
 import { FfmpegService } from 'src/app/services/ffmpeg.service';
-import { combineLatest, forkJoin } from 'rxjs';
-import IClip from 'src/app/models/clip.model';
+import { combineLatest, forkJoin, Observable, Subscription } from 'rxjs';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-upload',
@@ -33,19 +32,19 @@ export class UploadComponent implements OnDestroy {
   inSubmission=false
   percentage=0
   showPercentage=false
-  // user:firebase.User|null = null
+  uploadSubscription?:Subscription
   // task?:AngularFireUploadTask
   screenshots:string[] =[]
   selectedScreenshot=''
   // screenshotTask?:AngularFireUploadTask|null = null
 
-  constructor(private clipService:ClipService,
+  constructor(private clipService:ClipService,private auth:AuthService,
      private router:Router, public ffmpegService:FfmpegService) {
     this.ffmpegService.init();
    }
 
   ngOnDestroy(): void {
-  //  this.task?.cancel() 
+    this.uploadSubscription?.unsubscribe()
   }
 
   async storeFile(event:Event){
@@ -73,18 +72,27 @@ export class UploadComponent implements OnDestroy {
   }
 
   async uploadFile(){
-  //   console.log('Uploading file')
-  //   this.uploadForm.disable()
-  //   this.alertColor='blue'
-  //   this.alertMessage='File upload in progress...'
-  //   this.showAlert=true
-  //   this.showPercentage=true
-  //   this.inSubmission=true
-  //   let clipFileName= `ID-${Date.now().toFixed()}`;
-  //   let clipPath=`clips/${clipFileName}.mp4`
-  //   const screenshotBlob= await this.ffmpegService.getScreenshotBlob(this.selectedScreenshot);
-  //   let screenshotPath=`screenshots/${clipFileName}.png`
+    console.log('Uploading file')
+    this.uploadForm.disable()
+    this.alertColor='blue'
+    this.alertMessage='File upload in progress...'
+    this.showAlert=true
+    this.showPercentage=true
+    this.inSubmission=true
+    let clipFileName= `ID-${Date.now().toFixed()}`;
+    // let clipPath=`clips/${clipFileName}.mp4`
+    const screenshotBlob= await this.ffmpegService.getScreenshotBlob(this.selectedScreenshot);
+    // let screenshotPath=`screenshots/${clipFileName}.png`
+    if(this.auth.user===null || this.auth.user.id===undefined || this.file===null){
+      return
+    }
     
+    this.uploadSubscription=this.clipService.createClip(this.auth.user.id, this.auth.user.name,
+      this.title.value,clipFileName,this.file,screenshotBlob)
+      .subscribe((event)=>{
+        console.log(event)
+      })
+
   //   this.task= this.storage.upload(clipPath,this.file)
   //   const clipRef=this.storage.ref(clipPath)
 

@@ -1,72 +1,68 @@
-import { HttpClient, HttpEvent, HttpRequest, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpParams, HttpRequest, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, Router, RouterStateSnapshot } from '@angular/router';
 import { data, event } from 'cypress/types/jquery';
 import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
 import { switchMap , map, timestamp, filter} from 'rxjs/operators';
 import IClip from '../models/clip.model';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ClipService implements Resolve<IClip|null>{
   isProcessing=false
-  collection: any
   pageClips:IClip[]=[]
   serverUrl='http://localhost:8080'
 
   constructor(private http:HttpClient,
+    private auth:AuthService,
     private router:Router) {
       
    }
 
-   createClip(clip:IClip,clipFile:File,screenshotBlob:Blob):Observable<HttpEvent<any>>{
+   createClip(userId:string,displayName:string,
+    title:string,clipFileName:string,clipFile:File,screenshotBlob:Blob){
     
     const formData=new FormData();
-    formData.append('userId',clip.userId)
-    formData.append('displayName',clip.displayName)
-    formData.append('title',clip.title)
-    formData.append('clipFileName',clip.clipFileName)
+    formData.append('userId',userId)
+    formData.append('displayName',displayName)
+    formData.append('title',title)
+    formData.append('clipFileName',clipFileName)
     formData.append('clipFile',clipFile)
-    formData.append('screenshotFileName',clip.screenshotFileName)
-    formData.append('screenshotData',screenshotBlob)
+    formData.append('screenshotFileName',clipFileName)
+    formData.append('screenshotFile',screenshotBlob)
 
     const req=new HttpRequest('POST',`${this.serverUrl}/clips/add`,formData,{
       reportProgress:true,
-      responseType:'json'
+      responseType:'text'
     })
     return this.http.request(req);  
 
    }
 
-  //  getUserClips(sort$:BehaviorSubject<string>){
-  //   return combineLatest([
-  //     this.auth.user,
-  //     sort$
-  //   ]).pipe(
-  //     switchMap(values => {
-  //       const [user,sort]=values
-  //       console.log({user,sort})
-  //       if(!user){
-  //         of([])
-  //       }
+   getUserClips(sort$:BehaviorSubject<string>){
+    return combineLatest([
+      this.auth.user$,
+      sort$
+    ]).pipe(
+      switchMap(values => {
+        const [user,sort]=values
+        console.log({user,sort})
+        if(!user){
+          of([])
+        }
+        return this.http.get<IClip[]>(`${this.serverUrl}/user/${user.userId}/clips`,{
+          params:new HttpParams().set('order',sort)
+        })
+      })
+    )
+   }
 
-  //       const query=this.collection.ref.where(
-  //         'uid', '==', user?.uid
-  //       ).orderBy(
-  //         'timestamp',sort==='recent'?'desc':'asc'
-  //       )
-  //       return query.get()
-  //     }),
-  //     map(snapshot => (snapshot as QuerySnapshot<IClip>).docs)
-  //   )
-  //  }
-
-  //  updateClip(id:string,title:string){
-  //   return this.collection.doc(id).update({
-  //     title
-  //   })
-  //  }
+   updateClip(id:string,title:string){
+    const body={id,title}
+    return this.http.post(`${this.serverUrl}/clip/update`,body)
+   }
 
   //  async deleteClip(clip:IClip){
   //   const clipRef=this.storage.ref(`clips/${clip.fileName}`)
@@ -129,7 +125,6 @@ export class ClipService implements Resolve<IClip|null>{
    }
 
    getClip(id:string){
-    // const request=new HttpRequest('GET',`${this.serverUrl}/clips/${id}`)
     return this.http.get<IClip|null>(`${this.serverUrl}/clips/${id}`)
   }
 
