@@ -1,3 +1,4 @@
+import { HttpResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
@@ -58,16 +59,27 @@ export class ManageComponent implements OnInit {
   }
 
   updateClipsList(data:IClip){
-    // this.clips.map(clip => {
-    //   if(clip.docId===data.docId) clip.title=data.title
-    // })
+    this.clips.map(clip => {
+      if(clip.id===data.id) clip.title=data.title
+    })
   }
 
   deleteClip(event:Event,clip:IClip){
     event.preventDefault()
-    // this.clipService.deleteClip(clip)
+    if(!clip.id){
+      return
+    }
+    try {
+      this.clipService.deleteClip(clip.id).subscribe(
+        (event)=>{
+          console.log(event)
+          this.clips=this.clips.filter(existingClip =>existingClip.id!=clip.id)
+        }
+      )
+    } catch (error) {
+      console.error(error)
+    }
 
-    // this.clips=this.clips.filter(existingClip =>existingClip.docId!=clip.docId)
   }
 
   async copyToClipboard(event:Event,docId:string|undefined){

@@ -10,8 +10,9 @@ import { ClipService } from '../services/clip.service';
 })
 export class ClipslistComponent implements OnInit, OnDestroy {
   @Input() scrollable=true
+  currOffSet=0
   constructor(public clipService:ClipService) { 
-    this.clipService.getClips()
+    this.clipService.getClips(this.currOffSet)
   }
 
   ngOnInit(): void {
@@ -34,7 +35,11 @@ export class ClipslistComponent implements OnInit, OnDestroy {
     const bottomOfWindow=innerHeight+ Math.round(scrollTop)===offsetHeight
 
     if(bottomOfWindow){
-      // this.clipService.getClips()
+      const offSet=this.currOffSet+1
+      if(offSet*6 ===this.clipService.pageClips.length){
+        this.clipService.getClips(offSet)
+        this.currOffSet=offSet
+      }
     }
   }
 }

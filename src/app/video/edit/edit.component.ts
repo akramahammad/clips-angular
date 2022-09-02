@@ -57,6 +57,7 @@ export class EditComponent implements OnInit, OnChanges {
     try {
       
       this.clipService.updateClip(this.clipId.value, this.title.value)
+      .subscribe( (event)=> console.log(event))
     } catch (error) {
       console.error(error)
       this.inSubmission=false

@@ -61,24 +61,27 @@ export class ClipService implements Resolve<IClip|null>{
 
    updateClip(id:string,title:string){
     const body={id,title}
-    return this.http.post(`${this.serverUrl}/clip/update`,body)
+    return this.http.post(`${this.serverUrl}/clip/update`,body,{
+      responseType:'text'
+    })
    }
 
-  //  async deleteClip(clip:IClip){
-  //   const clipRef=this.storage.ref(`clips/${clip.fileName}`)
-  //   const screenshotRef= this.storage.ref(`screenshots/${clip.screenshotFileName}`)
-  //   await clipRef.delete()
-  //   await screenshotRef.delete()
-  //   await this.collection.doc(clip.docId).delete()
-  //  }
+   deleteClip(id:string){
+    return this.http.delete(`${this.serverUrl}/clip/${id}`,{
+      responseType:'text'
+    })
+   }
 
-   async getClips(){
+   async getClips(offSet:number){
+    console.log('inside getClips')
     if(this.isProcessing){
       return
     }
 
     this.isProcessing=true
-    this.http.get(`${this.serverUrl}/clips`).subscribe(
+    this.http.get(`${this.serverUrl}/clips`,{
+      params: new HttpParams().set('offset',offSet)
+    }).subscribe(
       (response:any)=>{
         response.map((data:IClip ) =>{
 
