@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { FfmpegService } from 'src/app/services/ffmpeg.service';
 import { combineLatest, forkJoin, Observable, Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
+import { HttpEventType, HttpResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-upload',
@@ -80,17 +81,68 @@ export class UploadComponent implements OnDestroy {
     this.showPercentage=true
     this.inSubmission=true
     let clipFileName= `ID-${Date.now().toFixed()}`;
-    // let clipPath=`clips/${clipFileName}.mp4`
     const screenshotBlob= await this.ffmpegService.getScreenshotBlob(this.selectedScreenshot);
-    // let screenshotPath=`screenshots/${clipFileName}.png`
-    if(this.auth.user===null || this.auth.user.id===undefined || this.file===null){
+    if(this.file===null){
       return
     }
     
-    this.uploadSubscription=this.clipService.createClip(this.auth.user.id, this.auth.user.name,
-      this.title.value,clipFileName,this.file,screenshotBlob)
-      .subscribe((event)=>{
-        console.log(event)
+    this.uploadSubscription=this.clipService.createClip(this.title.value,
+      clipFileName,this.file,screenshotBlob)
+      .subscribe({
+        next:(event)=>{
+          console.log(event)
+          if(event.type===HttpEventType.UploadProgress){
+            if(event.total!==undefined){
+              this.percentage=Math.round(event.loaded/event.total * 100)/100
+            }
+          }
+          if(event instanceof HttpResponse && event.status===201){
+            const body=event.body as {message:string,clipId:string}
+            setTimeout(()=>{
+              this.router.navigate(['clips',body.clipId])
+            },1000)
+                    
+            this.alertMessage='File uploaded successfully'
+            this.alertColor='green'
+            this.inSubmission=true
+            this.showPercentage=false        
+          }
+          else if(event instanceof HttpResponse && event.status===413){
+            this.uploadForm.enable()
+            this.alertMessage='Max file size exceeded!'
+            this.alertColor='red'
+            this.inSubmission=true
+            this.showPercentage=false
+            const interval=setTimeout(()=>{
+              this.file=null
+              this.showUpload=true
+              this.alertMessage=''
+              this.showAlert=false
+              this.inSubmission=false
+              this.showPercentage=false
+              this.alertColor='blue'
+            },1000)  
+          }
+
+        },
+        error:(err)=>{
+          console.error(err)
+          this.uploadForm.enable()
+          this.alertMessage='Upload failed ! Please try again'
+          this.alertColor='red'
+          this.inSubmission=true
+          this.showPercentage=false
+          const interval=setTimeout(()=>{
+            this.file=null
+            this.showUpload=true
+            this.alertMessage=''
+            this.alertColor='blue'
+            this.showAlert=false
+            this.inSubmission=false
+            this.showPercentage=false
+          },1000)
+          // clearInterval(interval)
+        },
       })
 
   //   this.task= this.storage.upload(clipPath,this.file)

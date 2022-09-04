@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +17,7 @@ export class LoginComponent implements OnInit {
   alertColor='blue'
   inSubmission=false
 
-  constructor() { }
+  constructor(private auth:AuthService) { }
 
   ngOnInit(): void {
   }
@@ -26,21 +27,29 @@ export class LoginComponent implements OnInit {
     this.showAlert=true
     this.alertMessage='Logging in...Please wait!'
     this.inSubmission=true
-    try {
-      // await this.auth.signInWithEmailAndPassword(this.credentials.email,this.credentials.password);
-      
-    } catch (error) {
-      console.log(error);
-      this.alertColor='red'
-      this.alertMessage='Invalid credentials'  
-      this.inSubmission=false
-      return
-    }
-    this.alertColor='green'
-    this.alertMessage='Logged in successfully!'
-    setTimeout(()=>{
-      this.inSubmission=false
-    },1000)
+    
+    this.auth.login(this.credentials.email,this.credentials.password)
+        .subscribe({
+          next:(event)=>{
+          this.auth.setToken(event.token)
+          this.auth.isLoggedIn=true
+          this.alertColor='green'
+          this.alertMessage='Logged in successfully!'
+          setTimeout(()=>{
+            this.inSubmission=false
+          },1000)
+
+        },
+        error:(error)=>{
+          console.error(error)
+          this.alertColor='red'
+          this.alertMessage='Invalid credentials'  
+          this.inSubmission=false
+          return
+
+        }
+      })
+    
   }
 
 }

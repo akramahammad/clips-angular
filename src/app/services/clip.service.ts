@@ -1,9 +1,8 @@
-import { HttpClient, HttpEvent, HttpParams, HttpRequest, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpHeaders, HttpParams, HttpRequest, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, Router, RouterStateSnapshot } from '@angular/router';
-import { data, event } from 'cypress/types/jquery';
 import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
-import { switchMap , map, timestamp, filter} from 'rxjs/operators';
+import { switchMap , map, timestamp, filter, retry} from 'rxjs/operators';
 import IClip from '../models/clip.model';
 import { AuthService } from './auth.service';
 
@@ -21,54 +20,65 @@ export class ClipService implements Resolve<IClip|null>{
       
    }
 
-   createClip(userId:string,displayName:string,
-    title:string,clipFileName:string,clipFile:File,screenshotBlob:Blob){
+   createClip(title:string,clipFileName:string,clipFile:File,screenshotBlob:Blob){
     
     const formData=new FormData();
-    formData.append('userId',userId)
-    formData.append('displayName',displayName)
     formData.append('title',title)
     formData.append('clipFileName',clipFileName)
     formData.append('clipFile',clipFile)
     formData.append('screenshotFileName',clipFileName)
     formData.append('screenshotFile',screenshotBlob)
 
-    const req=new HttpRequest('POST',`${this.serverUrl}/clips/add`,formData,{
+    const req=new HttpRequest('POST',
+    `${this.serverUrl}/clips/add`,formData,{
       reportProgress:true,
-      responseType:'text'
+      headers:new HttpHeaders().set('auth','true')
     })
-    return this.http.request(req);  
+    return this.http.request<
+    {message:string,clipId:string}|{message:string}
+    >(req);  
 
    }
 
    getUserClips(sort$:BehaviorSubject<string>){
-    return combineLatest([
-      this.auth.user$,
-      sort$
-    ]).pipe(
-      switchMap(values => {
-        const [user,sort]=values
-        console.log({user,sort})
-        if(!user){
-          of([])
-        }
-        return this.http.get<IClip[]>(`${this.serverUrl}/user/${user.userId}/clips`,{
-          params:new HttpParams().set('order',sort)
-        })
+    return sort$.pipe(
+      switchMap(order => {
+        return this.http.get<IClip[]>(`${this.serverUrl}/user/clips`,{
+                params:new HttpParams().set('order',order),
+                headers:new HttpHeaders().set('auth','true')
+              })
       })
     )
+    // return combineLatest([
+    //   this.auth.user$,
+    //   sort$
+    // ]).pipe(
+    //   switchMap(values => {
+    //     const [user,sort]=values
+    //     console.log({user,sort})
+    //     if(!user){
+    //       of([])
+    //     }
+    //     return this.http.get<IClip[]>(`${this.serverUrl}/user/clips`,{
+    //       params:new HttpParams().set('order',sort)
+    //     })
+    //   })
+    // )
+
    }
 
    updateClip(id:string,title:string){
     const body={id,title}
     return this.http.post(`${this.serverUrl}/clip/update`,body,{
-      responseType:'text'
+      responseType:'text',
+      headers:new HttpHeaders().set('auth','true')
     })
    }
 
    deleteClip(id:string){
     return this.http.delete(`${this.serverUrl}/clip/${id}`,{
-      responseType:'text'
+      responseType:'text',
+      headers:new HttpHeaders().set('auth','true')
     })
    }
 
@@ -103,26 +113,6 @@ export class ClipService implements Resolve<IClip|null>{
         
       }
     )
-
-    
-
-    // let query=this.collection.ref.orderBy('timestamp','desc').limit(6)
-    
-    // const {length}= this.pageClips
-    // if(length){
-    //   const lastDocId=this.pageClips[length-1].docId
-    //   const lastDoc= await this.collection.doc(lastDocId).get().toPromise()
-    //   query=query.startAfter(lastDoc)
-      
-    // }
-
-    // const snapshot=await query.get()
-    // snapshot.forEach( doc =>{
-    //   this.pageClips.push({
-    //     docId:doc.id,
-    //     ...doc.data()
-    //   })
-    // })
 
     this.isProcessing=false
    }

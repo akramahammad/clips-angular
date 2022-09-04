@@ -1,10 +1,8 @@
 import { HttpClient, HttpRequest, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { ActivatedRoute, NavigationEnd, Router} from '@angular/router';
 import { Observable, of } from 'rxjs';
-import {delay, filter, first, map, switchMap, tap} from 'rxjs/operators';
+import {filter, map, retry, switchMap} from 'rxjs/operators';
 import IUser from '../models/user.model';
 
 
@@ -12,42 +10,33 @@ import IUser from '../models/user.model';
   providedIn: 'root'
 })
 export class AuthService {
-  isAuthenticated$:Observable<boolean>
-  isAuthenticatedWithDelay$:Observable<boolean>
   redirect=false
   serverUrl='http://localhost:8080'
-  user:IUser|null=null
-  user$:Observable<any>
+  isLoggedIn=false
 
   constructor(
     private http:HttpClient,
     private router:Router,
     private route:ActivatedRoute) {
-    this.user$=of(
-        {
-          userId:'630f50deb5f33e479186e5ee',
-          name:'jack',
-          email:'jack@mail.com',
-          age:20,
-          mobileNumber:'4545124522',
-          token:null
+
+    const token=localStorage.getItem('token')
+    if(token!==undefined && token!==null){
+
+      const body={token}
+      this.http.post(`${this.serverUrl}/user/validate/token`,body,{
+        responseType:'text',
+        observe:'response'
+      })
+      .subscribe(
+        (event)=>{
+          if(event instanceof HttpResponse && event.status===200){
+            this.isLoggedIn=true
+          }
         }
-      )
-    this.isAuthenticated$=of(true)
-    this.user$.subscribe(
-      (data)=>{
-        this.user={
-          id:data.userId,
-          name:data.name,
-          email:data.email,
-          age:data.age,
-          mobileNumber:data.mobileNumber,
-        }
+        )
+        
       }
-    )
-    this.isAuthenticatedWithDelay$=this.isAuthenticated$.pipe(
-      delay(1000)
-    )
+
 
     this.router.events.pipe(
       filter(r => r instanceof NavigationEnd),
@@ -65,22 +54,50 @@ export class AuthService {
       throw new Error("Password is not available")
     }
 
-    const req=new HttpRequest('POST',`${this.serverUrl}/register`,userData);
+    const req=new HttpRequest('POST',`${this.serverUrl}/user/register`,userData);
     this.http.request(req).subscribe(
       (event)=>{
-        if(event instanceof HttpResponse){
+        if(event instanceof HttpResponse && event.status===201){
           console.log(event)
+          this.isLoggedIn=true
         }
       }
     )
 
   }
 
-  public async logout(event:Event){
-    event.preventDefault()
-    // await this.auth.signOut()
-    await this.router.navigateByUrl('/')
-    
+  login(username:string,password:string){
+    const body={email:username, password}
+    return this.http.post<{message:string,token:string}>(`${this.serverUrl}/user/login`,body)
   }
+
+  async logout(event:Event){
+    event.preventDefault()
+    localStorage.removeItem('token')
+    this.isLoggedIn=false
+    await this.router.navigateByUrl('/')
+  }
+
+  checkEmailAvailable(email:string){
+    return this.http.get(`${this.serverUrl}/user/email/${email}`,{
+      responseType:'text',
+      observe:'response'
+    }).pipe(
+      map(event =>{
+        console.log(event)
+        if(event.body==='Email already registered') return {emailTaken:true}
+        return null
+      })
+    )
+  }
+
+  getToken(){
+    localStorage.getItem('token')
+  }
+
+  setToken(token:string){
+    localStorage.setItem('token',token)
+  }
+
 
 }

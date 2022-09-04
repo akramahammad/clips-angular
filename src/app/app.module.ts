@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import {HttpClientModule} from '@angular/common/http'
+import {HttpClientModule, HTTP_INTERCEPTORS} from '@angular/common/http'
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { UserModule } from './user/user.module';
@@ -15,6 +15,7 @@ import { NotfoundComponent } from './notfound/notfound.component';
 import {AngularFireStorageModule} from '@angular/fire/compat/storage';
 import { ClipslistComponent } from './clipslist/clipslist.component';
 import { FbTimestampPipe } from './pipes/fb-timestamp.pipe';
+import { AuthInterceptor } from './interceptors/auth-interceptor.service';
 
 @NgModule({
   declarations: [
@@ -36,7 +37,9 @@ import { FbTimestampPipe } from './pipes/fb-timestamp.pipe';
     AppRoutingModule,
     HttpClientModule
   ],
-  providers: [],
+  providers: [
+    {provide:HTTP_INTERCEPTORS, useClass:AuthInterceptor, multi:true}
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
