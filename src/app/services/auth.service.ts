@@ -1,8 +1,9 @@
 import { HttpClient, HttpRequest, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router} from '@angular/router';
-import { Observable, of } from 'rxjs';
-import {filter, map, retry, switchMap} from 'rxjs/operators';
+import { of } from 'rxjs';
+import {filter, map,switchMap} from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 import IUser from '../models/user.model';
 
 
@@ -11,7 +12,7 @@ import IUser from '../models/user.model';
 })
 export class AuthService {
   redirect=false
-  serverUrl='http://localhost:8080'
+  serverUrl=environment.serverUrl
   isLoggedIn=false
 
   constructor(
@@ -59,7 +60,13 @@ export class AuthService {
       (event)=>{
         if(event instanceof HttpResponse && event.status===201){
           console.log(event)
-          this.isLoggedIn=true
+          const body=event.body as {message:string ,token:string}
+          if(body.token!==null && body.token!==undefined){
+            this.setToken(body.token)
+            setTimeout(()=>{
+              this.isLoggedIn=true
+            },1000)
+          }
         }
       }
     )

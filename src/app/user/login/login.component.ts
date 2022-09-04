@@ -32,10 +32,10 @@ export class LoginComponent implements OnInit {
         .subscribe({
           next:(event)=>{
           this.auth.setToken(event.token)
-          this.auth.isLoggedIn=true
           this.alertColor='green'
           this.alertMessage='Logged in successfully!'
           setTimeout(()=>{
+            this.auth.isLoggedIn=true
             this.inSubmission=false
           },1000)
 

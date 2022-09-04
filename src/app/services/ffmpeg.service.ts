@@ -12,7 +12,7 @@ export class FfmpegService {
 
   constructor() {
     this.ffmpeg=createFFmpeg({
-      corePath: environment.production?`https://${window.location.hostname}/node_modules/@ffmpeg/core/dist/ffmpeg-core.js`:"http://localhost:4200/node_modules/@ffmpeg/core/dist/ffmpeg-core.js",
+      corePath: environment.ffmpegPath,
       log:true
     });
    }

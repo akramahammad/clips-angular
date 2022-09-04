@@ -1,10 +1,10 @@
-import { HttpClient, HttpEvent, HttpHeaders, HttpParams, HttpRequest, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, Router, RouterStateSnapshot } from '@angular/router';
-import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
-import { switchMap , map, timestamp, filter, retry} from 'rxjs/operators';
+import { ActivatedRouteSnapshot, Resolve, RouterStateSnapshot } from '@angular/router';
+import { BehaviorSubject} from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 import IClip from '../models/clip.model';
-import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,11 +12,9 @@ import { AuthService } from './auth.service';
 export class ClipService implements Resolve<IClip|null>{
   isProcessing=false
   pageClips:IClip[]=[]
-  serverUrl='http://localhost:8080'
+  serverUrl=environment.serverUrl
 
-  constructor(private http:HttpClient,
-    private auth:AuthService,
-    private router:Router) {
+  constructor(private http:HttpClient) {
       
    }
 
@@ -49,21 +47,6 @@ export class ClipService implements Resolve<IClip|null>{
               })
       })
     )
-    // return combineLatest([
-    //   this.auth.user$,
-    //   sort$
-    // ]).pipe(
-    //   switchMap(values => {
-    //     const [user,sort]=values
-    //     console.log({user,sort})
-    //     if(!user){
-    //       of([])
-    //     }
-    //     return this.http.get<IClip[]>(`${this.serverUrl}/user/clips`,{
-    //       params:new HttpParams().set('order',sort)
-    //     })
-    //   })
-    // )
 
    }
 

@@ -1,10 +1,9 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy} from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { last, switchMap } from 'rxjs/operators';
 import { ClipService } from 'src/app/services/clip.service';
 import { Router } from '@angular/router';
 import { FfmpegService } from 'src/app/services/ffmpeg.service';
-import { combineLatest, forkJoin, Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
 
@@ -34,10 +33,8 @@ export class UploadComponent implements OnDestroy {
   percentage=0
   showPercentage=false
   uploadSubscription?:Subscription
-  // task?:AngularFireUploadTask
   screenshots:string[] =[]
   selectedScreenshot=''
-  // screenshotTask?:AngularFireUploadTask|null = null
 
   constructor(private clipService:ClipService,private auth:AuthService,
      private router:Router, public ffmpegService:FfmpegService) {
@@ -141,77 +138,8 @@ export class UploadComponent implements OnDestroy {
             this.inSubmission=false
             this.showPercentage=false
           },1000)
-          // clearInterval(interval)
         },
       })
 
-  //   this.task= this.storage.upload(clipPath,this.file)
-  //   const clipRef=this.storage.ref(clipPath)
-
-  //   this.screenshotTask=this.storage.upload(screenshotPath,screenshotBlob)
-  //   const screenshotRef=this.storage.ref(screenshotPath)
-
-  //   combineLatest(
-  //     [this.task.percentageChanges(),
-  //     this.screenshotTask.percentageChanges()])
-  //     .subscribe(progress =>{
-  //       const [clipProgress, screenshotProgress]=progress
-  //       if(!clipProgress || !screenshotProgress){
-  //         return
-  //       }
-  //       const total=clipProgress+screenshotProgress;
-  //       this.percentage=total as number /200;
-  //   })
-
-  //   forkJoin(
-  //     [
-  //       this.task.snapshotChanges(),
-  //       this.screenshotTask.snapshotChanges()    
-  //     ]
-  //   ).pipe(
-  //     switchMap(()=>
-  //       forkJoin(
-  //         [
-  //           clipRef.getDownloadURL(),
-  //           screenshotRef.getDownloadURL()
-  //         ]
-  //       )
-  //     )
-  //   ).subscribe({
-  //     next: async (urls)=>{
-  //       const [clipUrl,screenshotUrl]=urls
-
-  //       const clip:IClip={
-  //         userId:this.user?.uid as string,
-  //         displayName:this.user?.displayName as string,
-  //         title:this.title.value,
-  //         fileName:`${clipFileName}.mp4`,
-  //         url:clipUrl,
-  //         screenshotUrl,
-  //         screenshotFileName:`${clipFileName}.png`
-  //       }
-  //       console.log(clip)
-  //       const clipDocRef=await this.clipService.createClip(clip)
-
-  //       setTimeout(()=>{
-  //         this.router.navigate(['clips',clipDocRef.id])
-  //       },1000)
-        
-  //       this.alertMessage='File uploaded successfully'
-  //       this.alertColor='green'
-  //       this.inSubmission=true
-  //       this.showPercentage=false
-  //     },
-  //     error:(err)=>{
-  //       console.error(err)
-  //       this.uploadForm.enable()
-  //       this.alertMessage='Upload failed ! Please try again'
-  //       this.alertColor='red'
-  //       this.inSubmission=true
-  //       this.showPercentage=false
-  //     }
-
-  //   })
-  //   // 
   }
 }
