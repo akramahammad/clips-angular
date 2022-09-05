@@ -10,7 +10,6 @@ export class AuthInterceptor implements HttpInterceptor{
   constructor(private router:Router) { }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    console.log('Inside auth interceptor')
     const token=localStorage.getItem('token')
     if(!req.headers.has('auth') || token===undefined||token===null) return next.handle(req)
     
