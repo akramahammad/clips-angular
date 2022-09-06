@@ -91,13 +91,13 @@ export class ClipService implements Resolve<IClip|null>{
           }
 
           this.pageClips.push(clip);
+          this.isProcessing=false
         })
 
         
       }
     )
 
-    this.isProcessing=false
    }
 
    getClip(id:string){

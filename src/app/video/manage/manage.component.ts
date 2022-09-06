@@ -15,6 +15,7 @@ export class ManageComponent implements OnInit {
   activeClip:IClip|null = null
   order='recent'
   sort$:BehaviorSubject<string>
+  isProcessing=false
   constructor(private route:ActivatedRoute, private router:Router,
     private clipService:ClipService,
     private modalService:ModalService) { 
@@ -27,6 +28,7 @@ export class ManageComponent implements OnInit {
       this.sort$.next(this.order)
     })
 
+    this.isProcessing=true
     this.clipService.getUserClips(this.sort$).subscribe(data =>{
       this.clips=[]
       data.map(clip =>{
@@ -34,6 +36,7 @@ export class ManageComponent implements OnInit {
         clip.screenshotData='data:image/png;base64,'+clip.screenshotData.data
         this.clips.push(clip)
       })
+      this.isProcessing=false
     })
   }
 
@@ -48,6 +51,8 @@ export class ManageComponent implements OnInit {
         }
       }
       )
+    this.clips=[]
+    this.isProcessing=true
   }
 
   openModal(event:Event,clip:IClip){

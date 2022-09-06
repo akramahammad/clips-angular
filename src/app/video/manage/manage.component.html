@@ -50,6 +50,11 @@
   
       </div>
     </div>
+    <div *ngIf="isProcessing" class="text-center mt-20">
+      <span class="material-icons text-center text-6xl animate-spin">
+        autorenew
+      </span>
+    </div>
   </div>
 
 <app-edit [activeClip]="activeClip" (clipUpdated)="updateClipsList($event)"></app-edit>
