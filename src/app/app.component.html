@@ -1,5 +1,5 @@
-<app-nav></app-nav>
+<app-nav *ngIf="!auth.validatingToken"></app-nav>
 
-<router-outlet></router-outlet>
+<router-outlet *ngIf="!auth.validatingToken"></router-outlet>
   
 <app-auth-modal *ngIf="!auth.isLoggedIn"></app-auth-modal>

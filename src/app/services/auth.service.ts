@@ -14,6 +14,7 @@ export class AuthService {
   redirect=false
   serverUrl=environment.serverUrl
   isLoggedIn=false
+  validatingToken=false
 
   constructor(
     private http:HttpClient,
@@ -24,6 +25,7 @@ export class AuthService {
     if(token!==undefined && token!==null){
 
       const body={token}
+      this.validatingToken=true
       this.http.post(`${this.serverUrl}/user/validate/token`,body,{
         responseType:'text',
         observe:'response'
@@ -32,6 +34,7 @@ export class AuthService {
         (event)=>{
           if(event instanceof HttpResponse && event.status===200){
             this.isLoggedIn=true
+            this.validatingToken=false
           }
         }
         )
